@@ -36,6 +36,21 @@ export class BotUpdate {
     await this.botService.onAddress(ctx);
   }
 
+  @Command("car")
+  async onCars(@Ctx() ctx: Context) {
+    await this.botService.onCar(ctx);
+  }
+
+  @Hears("Adding new car")
+  async addNewCar(@Ctx() ctx: Context) {
+    await this.botService.addNewCar(ctx);
+  }
+
+  @Hears("My cars")
+  async myCars(@Ctx() ctx: Context) {
+    await this.botService.myCars(ctx);
+  }
+
   @Hears("Adding new address")
   async addNewAddress(@Ctx() ctx: Context) {
     await this.botService.addNewAddress(ctx);
@@ -44,6 +59,11 @@ export class BotUpdate {
   @Hears("My Addresses")
   async myAddresses(@Ctx() ctx: Context) {
     await this.botService.myAddresses(ctx);
+  }
+
+  @On("text")
+  async comingText(@Ctx() ctx: Context) {
+    await this.botService.comingText(ctx);
   }
 
   @On("location")
@@ -60,6 +80,11 @@ export class BotUpdate {
   async onText(@Ctx() ctx: Context) {
     await this.botService.onText(ctx);
   }
+
+  // @Hears("Adding new address")
+  // async addNewAddress(@Ctx() ctx: Context) {
+  //   await this.botService.addNewAddress(ctx);
+  // }
   // @Hears("hi")
   // async hearsHi(@Ctx() ctx: Context) {
   //   await ctx.reply("Hey, there");

@@ -8,12 +8,14 @@ import { BOT_NAME } from "../app.constants";
 import { Context, Markup, Telegraf } from "telegraf";
 import { Address } from "./ models/address.model";
 import { log } from "console";
+import { Car } from "./ models/car.model";
 
 @Injectable()
 export class BotService {
   constructor(
     @InjectModel(Bot) private botModel: typeof Bot,
     @InjectModel(Address) private addressModel: typeof Address,
+    @InjectModel(Car) private carModel: typeof Car,
     @InjectBot(BOT_NAME) private bot: Telegraf<Context>,
   ) {}
 
@@ -264,6 +266,153 @@ export class BotService {
       );
     } catch (error) {
       console.log("onClickLocation", error);
+    }
+  }
+
+  async onCar(ctx: Context) {
+    await ctx.reply("My cars", {
+      parse_mode: "HTML",
+      ...Markup.keyboard([["My cars", "Adding new car"]]).resize(),
+    });
+  }
+
+  async addNewCar(ctx: Context) {
+    const userId = ctx.from.id;
+    const user = await this.botModel.findByPk(userId);
+    if (!user) {
+      await ctx.reply(`Please, press start button`, {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["/start"]])
+          .resize()
+          .oneTime(),
+      });
+    } else {
+      await this.carModel.create({
+        user_id: userId,
+        current_status: "brand",
+      });
+      await ctx.reply(`Enter car brand: `, {
+        parse_mode: "HTML",
+        ...Markup.removeKeyboard(),
+      });
+    }
+  }
+
+  async comingText(ctx: Context) {
+    if ("text" in ctx.message) {
+      const userId = ctx.from.id;
+      const user = await this.botModel.findByPk(userId);
+      if (!user) {
+        await ctx.reply(`Please, press start button`, {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["/start"]])
+            .resize()
+            .oneTime(),
+        });
+      } else {
+        const car = await this.carModel.findOne({
+          where: { user_id: userId },
+          order: [["id", "DESC"]],
+        });
+        if (car) {
+          if (car.current_status == "brand") {
+            car.brand = ctx.message.text;
+            car.current_status = "model";
+            await car.save();
+            await ctx.reply(`Enter your model:`, {
+              parse_mode: "HTML",
+              ...Markup.removeKeyboard(),
+            });
+          } else if (car.current_status == "model") {
+            car.model = ctx.message.text;
+            car.current_status = "color";
+            await car.save();
+            await ctx.reply(`Enter your color:`, {
+              parse_mode: "HTML",
+              ...Markup.removeKeyboard(),
+            });
+          } else if (car.current_status == "color") {
+            car.color = ctx.message.text;
+            car.current_status = "year";
+            await car.save();
+            await ctx.reply(`Enter the year your car was manufactured:`, {
+              parse_mode: "HTML",
+              ...Markup.removeKeyboard(),
+            });
+          } else if (car.current_status == "year") {
+            car.year = +ctx.message.text;
+            car.current_status = "licence_plate";
+            await car.save();
+            await ctx.reply(`Enter your car's licence plate:`, {
+              parse_mode: "HTML",
+              ...Markup.removeKeyboard(),
+            });
+          } else if (car.current_status == "licence_plate") {
+            car.licence_plate = ctx.message.text;
+            car.current_status = "finished";
+            await car.save();
+            await ctx.reply(`New car registered successfully`, {
+              parse_mode: "HTML",
+              ...Markup.keyboard([["My cars", "Adding new car"]]).resize(),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  async myCars(ctx: Context) {
+    const userId = ctx.from.id;
+    const user = await this.botModel.findByPk(userId);
+    if (!user) {
+      await ctx.reply(`Please, press start button`, {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["/start"]])
+          .resize()
+          .oneTime(),
+      });
+    } else {
+      const user_cars = await this.carModel.findAll({
+        where: { user_id: userId },
+      });
+
+      const finishedCars = user_cars.filter(
+        (car) => car.current_status === "finished",
+      );
+
+      finishedCars.forEach(async (car) => {
+        await ctx.replyWithHTML(
+          `<b>🚗 Brand: </b> ${car.brand}\n` +
+            `<b>📄 Model: </b> ${car.model}\n` +
+            `<b>🎨 Color: </b> ${car.color}\n` +
+            `<b>📅 Year: </b> ${car.year}\n` +
+            `<b>🔖 License Plate: </b> ${car.licence_plate}\n\n` +
+            // `<b>⚙️ Status: </b> ${car.current_status}`,
+            `📌<i>Functionality of buttons will be added later.</i>`,
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🛠️ Service History",
+                    callback_data: `service_history_${car.user_id}`,
+                  },
+                  {
+                    text: "📋 Edit Details",
+                    callback_data: `edit_car_${car.user_id}`,
+                  },
+                ],
+                [
+                  {
+                    text: "❌ Delete Car",
+                    callback_data: `delete_car_${car.user_id}`,
+                  },
+                ],
+              ],
+            },
+          },
+        );
+      });
     }
   }
 }
