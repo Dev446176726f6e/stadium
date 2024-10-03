@@ -9,10 +9,13 @@ import { UsersModule } from "./users/users.module";
 import { UserWalletModule } from "./user_wallet/user_wallet.module";
 import { UserCardModule } from "./user_card/user_card.module";
 import { CountryModule } from "./country/country.module";
-// import { MailModule } from "./mail/mail.module";
+import { MailModule } from "./mail/mail.module";
 import { BotModule } from "./bot/bot.module";
 import { TelegrafModule } from "nestjs-telegraf";
 import { BOT_NAME } from "./app.constants";
+// import { OrderModule } from './order/order.module';
+import { AdminModule } from "./admin/admin.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -39,7 +42,6 @@ import { BOT_NAME } from "./app.constants";
       sync: { alter: true },
       logging: false,
     }),
-    // MailModule,
     ComfortModule,
     RegionModule,
     DistrictModule,
@@ -48,8 +50,11 @@ import { BOT_NAME } from "./app.constants";
     UserWalletModule,
     UserCardModule,
     CountryModule,
-    // MailModule,
+    MailModule,
     BotModule,
+    AdminModule,
+    AuthModule,
+    // OrderModule,
   ],
   controllers: [],
   providers: [],
