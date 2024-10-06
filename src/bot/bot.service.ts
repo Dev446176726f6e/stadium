@@ -415,4 +415,15 @@ export class BotService {
       });
     }
   }
+
+  async sendOtp(phone_number: string, OTP: string): Promise<boolean> {
+    const user = await this.botModel.findOne({ where: { phone_number } });
+    if (!user || !user.status) {
+      return false;
+    }
+    await this.bot.telegram.sendChatAction(user.user_id, "typing");
+
+    await this.bot.telegram.sendMessage(user.user_id, "Verify OTP code:" + OTP);
+    return true;
+  }
 }

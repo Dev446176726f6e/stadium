@@ -16,13 +16,25 @@ import { JwtService } from "@nestjs/jwt";
 import { Request, Response } from "express";
 import { SignInDto } from "./dto/sign-in.dto";
 import { MailService } from "../mail/mail.service";
+import { PhoneVerifcationUserDto } from "./dto/phone-user.dto";
+
+import * as otpGenerator from "otp-generator";
+import { BotService } from "../bot/bot.service";
+import { Otp } from "../otp/otp.model";
+import { AddMinutesToDate } from "../helpers/addMinutes";
+import { timestamp } from "rxjs";
+import { decode, encode } from "../helpers/crypto";
+import { VerifyOTPDto } from "./dto/verify-otp.dto";
+import { ResetPasswordDto } from "./dto/reset-password.user.dto";
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User) private userModel: typeof User,
+    @InjectModel(Otp) private otpModel: typeof Otp,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly botService: BotService,
   ) {}
 
   async generateTokens(user: User) {
@@ -264,5 +276,98 @@ export class UsersService {
 
   remove(id: number) {
     return this.userModel.destroy({ where: { id } });
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { current_password, new_password, confirm_new_password } =
+      resetPasswordDto;
+  }
+
+  async newOtp(phoneUserDto: PhoneVerifcationUserDto) {
+    const phone_number = phoneUserDto.phone;
+
+    const otp = otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    const isSend = await this.botService.sendOtp(phone_number, otp);
+
+    if (!isSend) {
+      throw new BadRequestException("First register in Telegram bot");
+    }
+
+    const now = new Date();
+    const expiration_time = AddMinutesToDate(now, 5);
+    await this.otpModel.destroy({ where: { phone_number } });
+
+    const newOtp = await this.otpModel.create({
+      id: uuid.v4(),
+      otp,
+      expiration_time,
+      phone_number,
+    });
+
+    const details = {
+      timestamp: now,
+      phone_number,
+      otp_id: newOtp.id,
+    };
+
+    const encodedData = await encode(JSON.stringify(details));
+
+    return { message: "OTP send to Telegram", details: encodedData };
+  }
+
+  async verifyOtp(verifyOtpDto: VerifyOTPDto) {
+    const { verification_key, otp, phone_number } = verifyOtpDto;
+    const current_time = new Date();
+    const decodedData = await decode(verification_key);
+    const details = JSON.parse(decodedData);
+    if (details.phone_number !== phone_number) {
+      throw new BadRequestException("OTP is not send to this number");
+    }
+    const resultOtp = await this.otpModel.findOne({
+      where: { id: details.otp_id },
+    });
+
+    if (!resultOtp) {
+      throw new BadRequestException("OTP not found");
+    }
+
+    if (resultOtp.verified) {
+      throw new BadRequestException("OTP used before");
+    }
+
+    if (resultOtp.expiration_time < current_time) {
+      throw new BadRequestException("OTP time expired");
+    }
+
+    if (resultOtp.otp !== otp) {
+      throw new BadRequestException("OTP does not match");
+    }
+
+    const user = await this.userModel.update(
+      {
+        is_owner: true,
+      },
+      { where: { phone: phone_number }, returning: true },
+    );
+
+    if (!user[1][0]) {
+      throw new BadRequestException("User not found");
+    }
+    await this.otpModel.update(
+      { verified: true },
+      { where: { id: details.otp_id } },
+    );
+
+    const response = {
+      message: "You successfully verified yourself as owner",
+      owner: user[1][0].is_owner,
+    };
+
+    return response;
   }
 }

@@ -21,6 +21,8 @@ import { UserGuard } from "../guards/user.guard";
 import { Admin } from "../admin/model/admin.model";
 import { AdminGuard } from "../guards/admin.guard";
 import { CreatorGuard } from "../guards/creator.guard";
+import { PhoneVerifcationUserDto } from "./dto/phone-user.dto";
+import { VerifyOTPDto } from "./dto/verify-otp.dto";
 // import { CookieGetter } from "../decorators/cookie_getter.decorator";
 
 @Controller("users")
@@ -91,5 +93,17 @@ export class UsersController {
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @HttpCode(200)
+  @Post("newotp")
+  newOtp(@Body() phoneuserDto: PhoneVerifcationUserDto) {
+    return this.usersService.newOtp(phoneuserDto);
+  }
+
+  @HttpCode(200)
+  @Post("verifyotp")
+  verifyOtp(@Body() verifyOtpDto: VerifyOTPDto) {
+    return this.usersService.verifyOtp(verifyOtpDto);
   }
 }

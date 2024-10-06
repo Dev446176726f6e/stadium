@@ -6,14 +6,15 @@ import {
   HasMany,
   Model,
   Table,
-} from 'sequelize-typescript';
+} from "sequelize-typescript";
+import { Stadium } from "../../stadium/model/stadium.model";
 
 interface ICategoryCreationAttr {
   name: string;
   parent_id: number;
 }
 
-@Table({ tableName: 'category', timestamps: false })
+@Table({ tableName: "category", timestamps: false })
 export class Category extends Model<Category, ICategoryCreationAttr> {
   @Column({
     type: DataType.INTEGER,
@@ -35,9 +36,12 @@ export class Category extends Model<Category, ICategoryCreationAttr> {
   })
   parent_id: number;
 
-  @BelongsTo(() => Category, { as: 'parent' })
+  @BelongsTo(() => Category, { as: "parent" })
   category: Category;
 
-  @HasMany(() => Category, { as: 'child' })
+  @HasMany(() => Category, { as: "child" })
   categories: Category[];
+
+  @HasMany(() => Stadium)
+  stadiums: Stadium[];
 }

@@ -16,6 +16,14 @@ import { BOT_NAME } from "./app.constants";
 // import { OrderModule } from './order/order.module';
 import { AdminModule } from "./admin/admin.module";
 import { AuthModule } from "./auth/auth.module";
+import { OtpModule } from './otp/otp.module';
+import { ComfortStadiumModule } from './comfort_stadium/comfort_stadium.module';
+import { CartModule } from './cart/cart.module';
+import { StadiumModule } from './stadium/stadium.module';
+import { WorkingTimesModule } from './working_times/working_times.module';
+import { StadiumStatusModule } from './stadium_status/stadium_status.module';
+import { CommentsModule } from './comments/comments.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -54,6 +62,14 @@ import { AuthModule } from "./auth/auth.module";
     BotModule,
     AdminModule,
     AuthModule,
+    OtpModule,
+    ComfortStadiumModule,
+    CartModule,
+    StadiumModule,
+    WorkingTimesModule,
+    StadiumStatusModule,
+    CommentsModule,
+    MediaModule,
     // OrderModule,
   ],
   controllers: [],

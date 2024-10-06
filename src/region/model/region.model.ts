@@ -6,16 +6,17 @@ import {
   HasMany,
   Model,
   Table,
-} from 'sequelize-typescript';
-import { Country } from '../../country/model/country.model';
-import { District } from '../../district/model/district.model';
+} from "sequelize-typescript";
+import { Country } from "../../country/model/country.model";
+import { District } from "../../district/model/district.model";
+import { Stadium } from "../../stadium/model/stadium.model";
 
 interface IRegionCreationAttr {
   name: string;
   country_id: number;
 }
 
-@Table({ tableName: 'region', timestamps: false })
+@Table({ tableName: "region", timestamps: false })
 export class Region extends Model<Region, IRegionCreationAttr> {
   @Column({
     type: DataType.INTEGER,
@@ -42,4 +43,7 @@ export class Region extends Model<Region, IRegionCreationAttr> {
 
   @HasMany(() => District)
   districts: District[];
+
+  @HasMany(() => Stadium)
+  stadiums: Stadium[];
 }

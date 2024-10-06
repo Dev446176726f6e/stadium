@@ -1,6 +1,7 @@
 import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
 import { UserCard } from "../../user_card/model/user_card.model";
 import { UserWallet } from "../../user_wallet/model/user_wallet.model";
+import { Comment } from "../../comments/model/comment.model";
 
 interface IUserCreationAttr {
   full_name: string;
@@ -58,4 +59,7 @@ export class User extends Model<User, IUserCreationAttr> {
 
   @HasMany(() => UserWallet)
   wallets: UserWallet[];
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

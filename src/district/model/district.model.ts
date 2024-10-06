@@ -3,17 +3,19 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
-} from 'sequelize-typescript';
-import { Region } from '../../region/model/region.model';
+} from "sequelize-typescript";
+import { Region } from "../../region/model/region.model";
+import { Stadium } from "../../stadium/model/stadium.model";
 
 interface IDistrictCreationAttr {
   name: string;
   region_id: number;
 }
 
-@Table({ tableName: 'district', timestamps: false })
+@Table({ tableName: "district", timestamps: false })
 export class District extends Model<District, IDistrictCreationAttr> {
   @Column({
     type: DataType.INTEGER,
@@ -37,4 +39,7 @@ export class District extends Model<District, IDistrictCreationAttr> {
 
   @BelongsTo(() => Region)
   region: Region;
+
+  @HasMany(() => Stadium)
+  stadiums: Stadium[];
 }
