@@ -23,6 +23,7 @@ import { AdminGuard } from "../guards/admin.guard";
 import { CreatorGuard } from "../guards/creator.guard";
 import { PhoneVerifcationUserDto } from "./dto/phone-user.dto";
 import { VerifyOTPDto } from "./dto/verify-otp.dto";
+import { ResetPasswordDto } from "./dto/reset-password.user.dto";
 // import { CookieGetter } from "../decorators/cookie_getter.decorator";
 
 @Controller("users")
@@ -105,5 +106,14 @@ export class UsersController {
   @Post("verifyotp")
   verifyOtp(@Body() verifyOtpDto: VerifyOTPDto) {
     return this.usersService.verifyOtp(verifyOtpDto);
+  }
+
+  @HttpCode(200)
+  @Post(":id/reset-password")
+  resetPassword(
+    @Body() resetpasswordDto: ResetPasswordDto,
+    @Param("id") id: string,
+  ) {
+    return this.usersService.resetPassword(+id, resetpasswordDto);
   }
 }

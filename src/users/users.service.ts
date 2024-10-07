@@ -278,9 +278,46 @@ export class UsersService {
     return this.userModel.destroy({ where: { id } });
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(id: number, resetPasswordDto: ResetPasswordDto) {
     const { current_password, new_password, confirm_new_password } =
       resetPasswordDto;
+
+    const user = await this.userModel.findByPk(id);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    const password_check = await bcrypt.compare(
+      current_password,
+      user.hashed_password,
+    );
+
+    if (!password_check) {
+      throw new UnauthorizedException(
+        "Wrong password. It doesn't match with current one",
+      );
+    }
+
+    if (new_password !== confirm_new_password) {
+      throw new BadRequestException(
+        "The confirm password confirmation does not match",
+      );
+    }
+
+    const hashed_password = await bcrypt.hash(new_password, 10);
+    const updated_user = await this.userModel.update(
+      { hashed_password },
+      { where: { id }, returning: true },
+    );
+
+    const response = {
+      message: "Password reset successfully",
+      name: updated_user[1][0].full_name,
+      email: updated_user[1][0].email,
+      password: updated_user[1][0].hashed_password,
+    };
+
+    return response;
   }
 
   async newOtp(phoneUserDto: PhoneVerifcationUserDto) {
