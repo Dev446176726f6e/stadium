@@ -24,6 +24,7 @@ import { WorkingTimesModule } from './working_times/working_times.module';
 import { StadiumStatusModule } from './stadium_status/stadium_status.module';
 import { CommentsModule } from './comments/comments.module';
 import { MediaModule } from './media/media.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { MediaModule } from './media/media.module';
     StadiumStatusModule,
     CommentsModule,
     MediaModule,
+    SmsModule,
     // OrderModule,
   ],
   controllers: [],

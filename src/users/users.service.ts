@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -26,6 +27,7 @@ import { timestamp } from "rxjs";
 import { decode, encode } from "../helpers/crypto";
 import { VerifyOTPDto } from "./dto/verify-otp.dto";
 import { ResetPasswordDto } from "./dto/reset-password.user.dto";
+import { SmsService } from "../sms/sms.service";
 
 @Injectable()
 export class UsersService {
@@ -35,6 +37,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly botService: BotService,
+    private readonly smsService: SmsService,
   ) {}
 
   async generateTokens(user: User) {
@@ -334,6 +337,16 @@ export class UsersService {
     if (!isSend) {
       throw new BadRequestException("First register in Telegram bot");
     }
+    // SMS
+    const response = await this.smsService.sendSMS(phone_number, otp);
+
+    if (response.status !== 200) {
+      throw new ServiceUnavailableException("Error on sending OTP");
+    }
+
+    const mesage =
+      `OTP code has been send to *****` +
+      phone_number.slice(phone_number.length - 4);
 
     const now = new Date();
     const expiration_time = AddMinutesToDate(now, 5);
@@ -354,7 +367,11 @@ export class UsersService {
 
     const encodedData = await encode(JSON.stringify(details));
 
-    return { message: "OTP send to Telegram", details: encodedData };
+    return {
+      // message: "OTP send to Telegram",
+      message: mesage,
+      details: encodedData,
+    };
   }
 
   async verifyOtp(verifyOtpDto: VerifyOTPDto) {

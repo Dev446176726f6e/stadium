@@ -24,11 +24,15 @@ import { CreatorGuard } from "../guards/creator.guard";
 import { PhoneVerifcationUserDto } from "./dto/phone-user.dto";
 import { VerifyOTPDto } from "./dto/verify-otp.dto";
 import { ResetPasswordDto } from "./dto/reset-password.user.dto";
+import { SmsService } from "../sms/sms.service";
 // import { CookieGetter } from "../decorators/cookie_getter.decorator";
 
 @Controller("users")
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly smsService: SmsService,
+  ) {}
 
   @Post("signup")
   signUp(
@@ -115,5 +119,17 @@ export class UsersController {
     @Param("id") id: string,
   ) {
     return this.usersService.resetPassword(+id, resetpasswordDto);
+  }
+
+  @HttpCode(200)
+  @Post("get-token")
+  getSMStoken() {
+    return this.smsService.getToken();
+  }
+
+  @HttpCode(200)
+  @Post("refresh-token")
+  refreshSMStoken() {
+    return this.smsService.refreshToken();
   }
 }
